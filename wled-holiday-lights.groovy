@@ -67,8 +67,8 @@ preferences {
         if (controllerCount) {
             for (int i = 1; i <= controllerCount; i++) {
                 section("Controller ${i}") {
-                    input "controllerName${i}", "text", title: "Controller Name", required: true, defaultValue: "Controller ${i}"
-                    input "controllerEndpoint${i}", "text", title: "WLED Endpoint URL", required: true,
+                    input "controllerName${i}", "text", title: "Controller Name", defaultValue: "Controller ${i}"
+                    input "controllerEndpoint${i}", "text", title: "WLED Endpoint URL",
                         description: "e.g., http://192.168.1.123/json/state"
                     input "controllerEnabled${i}", "bool", title: "Enabled", defaultValue: true
                 }
