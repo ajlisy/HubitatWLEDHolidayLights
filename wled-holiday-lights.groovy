@@ -320,15 +320,15 @@ def triggerLights() {
 
     // Turn on power switches if configured
     if (powerSwitches && powerSwitches.size() > 0) {
-        logDebug "Turning on ${powerSwitches.size()} power switch(es)..."
+        log.info "Turning on ${powerSwitches.size()} power switch(es) for WLED controllers"
         powerSwitches.each { sw ->
-            logDebug "Turning on switch: ${sw.displayName}"
+            log.info "Turning on power switch: ${sw.displayName}"
             sw.on()
         }
 
         // Wait for WLED controllers to boot up before sending commands
         def delay = powerSwitchDelay ?: 20
-        logDebug "Waiting ${delay} seconds for WLED controllers to boot..."
+        log.info "Waiting ${delay} seconds for WLED controllers to boot up"
         runIn(delay, "sendWledCommandsForHoliday", [data: [holidayIndex: activeHoliday.index, holidayName: activeHoliday.name]])
     } else {
         // No power switches configured, send WLED commands immediately
@@ -340,7 +340,7 @@ def sendWledCommandsForHoliday(data) {
     def holidayIndex = data.holidayIndex
     def holidayName = data.holidayName
 
-    logDebug "Sending WLED commands for holiday: ${holidayName}"
+    log.info "Sending WLED commands for holiday: ${holidayName}"
 
     def holiday = [index: holidayIndex, name: holidayName]
     def colors = getColorsForToday(holiday)
@@ -353,16 +353,16 @@ def sendWledCommandsForHoliday(data) {
 }
 
 def turnOffLights() {
-    logDebug "Turning off lights..."
+    log.info "Turning off WLED lights"
 
     def offPayload = '{"on":false}'
     sendToControllers(offPayload)
 
     // Turn off power switches if configured
     if (turnOffPowerSwitches && powerSwitches && powerSwitches.size() > 0) {
-        logDebug "Turning off ${powerSwitches.size()} power switch(es)..."
+        log.info "Turning off ${powerSwitches.size()} power switch(es)"
         powerSwitches.each { sw ->
-            logDebug "Turning off switch: ${sw.displayName}"
+            log.info "Turning off power switch: ${sw.displayName}"
             sw.off()
         }
     }
@@ -519,7 +519,7 @@ def sendToControllers(payload) {
             def name = settings["controllerName${i}"] ?: "Controller ${i}"
 
             if (enabled && endpoint) {
-                logDebug "Sending to ${name}: ${endpoint}"
+                log.info "Sending POST to ${name} at ${endpoint}"
                 sendPost(endpoint, payload, name)
             }
         }
@@ -549,7 +549,7 @@ def postResponseHandler(response, data) {
     if (response.hasError()) {
         log.error "Error response from ${controllerName}: ${response.getErrorMessage()}"
     } else {
-        logDebug "Success response from ${controllerName}: ${response.status}"
+        log.info "Success response from ${controllerName} (HTTP ${response.status})"
     }
 }
 
