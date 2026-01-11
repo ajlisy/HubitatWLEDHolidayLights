@@ -78,34 +78,36 @@ preferences {
 
     // Colors Page
     page(name: "colorsPage", title: "Color Definitions") {
+        // Preset color defaults
+        def presetColors = [
+            [name: "Red", r: 255, g: 0, b: 0],
+            [name: "Green", r: 0, g: 255, b: 0],
+            [name: "Purple", r: 128, g: 0, b: 128],
+            [name: "Orange", r: 255, g: 165, b: 0],
+            [name: "Blue", r: 0, g: 0, b: 255],
+            [name: "Bright White", r: 255, g: 255, b: 255],
+            [name: "Warm White", r: 255, g: 200, b: 150],
+            [name: "Yellow", r: 255, g: 255, b: 0]
+        ]
+
         section("Define Custom Colors") {
             paragraph "Define colors with names and RGB values. These colors can be used in holiday configurations."
             input "colorCount", "number", title: "Number of Colors", range: "1..50", defaultValue: 10, submitOnChange: true
         }
         if (colorCount) {
             for (int i = 1; i <= colorCount; i++) {
+                def preset = (i <= presetColors.size()) ? presetColors[i - 1] : null
                 section("Color ${i}") {
-                    input "colorName${i}", "text", title: "Color Name", required: false, description: "e.g., Red, Green, Orange"
-                    input "colorR${i}", "number", title: "Red (0-255)", range: "0..255", required: false, defaultValue: 0
-                    input "colorG${i}", "number", title: "Green (0-255)", range: "0..255", required: false, defaultValue: 0
-                    input "colorB${i}", "number", title: "Blue (0-255)", range: "0..255", required: false, defaultValue: 0
+                    input "colorName${i}", "text", title: "Color Name", required: false,
+                        defaultValue: preset?.name, description: "e.g., Red, Green, Orange"
+                    input "colorR${i}", "number", title: "Red (0-255)", range: "0..255", required: false,
+                        defaultValue: preset?.r ?: 0
+                    input "colorG${i}", "number", title: "Green (0-255)", range: "0..255", required: false,
+                        defaultValue: preset?.g ?: 0
+                    input "colorB${i}", "number", title: "Blue (0-255)", range: "0..255", required: false,
+                        defaultValue: preset?.b ?: 0
                 }
             }
-        }
-        section("Preset Colors (for reference)") {
-            paragraph """
-Common colors:
-- Red: 255, 0, 0
-- Green: 0, 255, 0
-- Blue: 0, 0, 255
-- White: 255, 255, 255
-- Warm White: 255, 200, 150
-- Orange: 255, 165, 0
-- Purple: 128, 0, 128
-- Yellow: 255, 255, 0
-- Pink: 255, 105, 180
-- Cyan: 0, 255, 255
-"""
         }
     }
 
