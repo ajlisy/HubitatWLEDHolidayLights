@@ -26,6 +26,14 @@ preferences {
         section("WLED Controllers") {
             href "controllersPage", title: "Configure WLED Controllers", description: getControllersDescription()
         }
+        section("Power Switches") {
+            input "powerSwitches", "capability.switch", title: "Switches to turn on before activating WLED",
+                description: "Select switches that control power to WLED controllers", multiple: true, required: false
+            input "powerSwitchDelay", "number", title: "Delay after turning on switches (seconds)",
+                description: "Time to wait for WLED controllers to boot up", defaultValue: 20, range: "0..120"
+            input "turnOffPowerSwitches", "bool", title: "Turn off power switches when lights turn off",
+                description: "Also turn off the power switches when the lights are turned off", defaultValue: false
+        }
         section("Color Definitions") {
             href "colorsPage", title: "Define Colors", description: getColorsDescription()
         }
@@ -310,7 +318,32 @@ def triggerLights() {
 
     logDebug "Active holiday: ${activeHoliday.name}"
 
-    def colors = getColorsForToday(activeHoliday)
+    // Turn on power switches if configured
+    if (powerSwitches && powerSwitches.size() > 0) {
+        log.info "Turning on ${powerSwitches.size()} power switch(es) for WLED controllers"
+        powerSwitches.each { sw ->
+            log.info "Turning on power switch: ${sw.displayName}"
+            sw.on()
+        }
+
+        // Wait for WLED controllers to boot up before sending commands
+        def delay = powerSwitchDelay ?: 20
+        log.info "Waiting ${delay} seconds for WLED controllers to boot up"
+        runIn(delay, "sendWledCommandsForHoliday", [data: [holidayIndex: activeHoliday.index, holidayName: activeHoliday.name]])
+    } else {
+        // No power switches configured, send WLED commands immediately
+        sendWledCommandsForHoliday([holidayIndex: activeHoliday.index, holidayName: activeHoliday.name])
+    }
+}
+
+def sendWledCommandsForHoliday(data) {
+    def holidayIndex = data.holidayIndex
+    def holidayName = data.holidayName
+
+    log.info "Sending WLED commands for holiday: ${holidayName}"
+
+    def holiday = [index: holidayIndex, name: holidayName]
+    def colors = getColorsForToday(holiday)
     logDebug "Colors for today: ${colors}"
 
     def payload = buildPayload(colors)
@@ -320,10 +353,19 @@ def triggerLights() {
 }
 
 def turnOffLights() {
-    logDebug "Turning off lights..."
+    log.info "Turning off WLED lights"
 
     def offPayload = '{"on":false}'
     sendToControllers(offPayload)
+
+    // Turn off power switches if configured
+    if (turnOffPowerSwitches && powerSwitches && powerSwitches.size() > 0) {
+        log.info "Turning off ${powerSwitches.size()} power switch(es)"
+        powerSwitches.each { sw ->
+            log.info "Turning off power switch: ${sw.displayName}"
+            sw.off()
+        }
+    }
 }
 
 def getActiveHoliday() {
@@ -477,7 +519,7 @@ def sendToControllers(payload) {
             def name = settings["controllerName${i}"] ?: "Controller ${i}"
 
             if (enabled && endpoint) {
-                logDebug "Sending to ${name}: ${endpoint}"
+                log.info "Sending POST to ${name} at ${endpoint}"
                 sendPost(endpoint, payload, name)
             }
         }
@@ -507,7 +549,7 @@ def postResponseHandler(response, data) {
     if (response.hasError()) {
         log.error "Error response from ${controllerName}: ${response.getErrorMessage()}"
     } else {
-        logDebug "Success response from ${controllerName}: ${response.status}"
+        log.info "Success response from ${controllerName} (HTTP ${response.status})"
     }
 }
 
