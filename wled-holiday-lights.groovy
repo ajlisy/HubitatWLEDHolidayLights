@@ -38,7 +38,7 @@ preferences {
             href "colorsPage", title: "Define Colors", description: getColorsDescription()
         }
         section("Base JSON Payload") {
-            input "basePayload", "text", title: "Base JSON Payload", required: true,
+            input "basePayload", "text", title: "Base JSON Payload",
                 defaultValue: '{"on":true,"bri":33,"transition":7,"ps":1,"seg":[{"id":0,"col":[[255,0,0],[0,255,0],[0,0,0]],"fx":51,"sx":65,"ix":255}]}',
                 description: "The base WLED JSON payload. Colors will be replaced based on holiday settings."
         }
@@ -46,8 +46,8 @@ preferences {
             href "holidaysPage", title: "Configure Holidays", description: getHolidaysDescription()
         }
         section("Master Schedule") {
-            input "turnOnTime", "time", title: "Lights Turn On Time", required: true
-            input "turnOffTime", "time", title: "Lights Turn Off Time", required: true
+            input "turnOnTime", "time", title: "Lights Turn On Time"
+            input "turnOffTime", "time", title: "Lights Turn Off Time"
             input "enableSchedule", "bool", title: "Enable Automatic Scheduling", defaultValue: true
         }
         section("Manual Control") {
