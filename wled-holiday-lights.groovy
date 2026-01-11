@@ -124,7 +124,7 @@ Common colors:
                     input "holidayEndMonth${i}", "enum", title: "End Month", options: getMonthOptions(), required: false
                     input "holidayEndDay${i}", "number", title: "End Day", range: "1..31", required: false
                     input "holidayPriority${i}", "number", title: "Priority (lower = higher priority)", range: "1..100", defaultValue: 50
-                    href "holidayColorsPage", title: "Configure Colors for ${settings["holidayName${i}"] ?: "Holiday ${i}"}",
+                    href "holidayColorsPage", title: "Configure Colors for ${settings?.getAt("holidayName${i}") ?: "Holiday ${i}"}",
                         params: [holidayIndex: i], description: "Set colors for each day of the week"
                 }
             }
@@ -134,7 +134,7 @@ Common colors:
     // Holiday Colors Page (per holiday, per day of week)
     page(name: "holidayColorsPage", title: "Holiday Color Configuration") {
         def holidayIndex = params?.holidayIndex ?: 1
-        def holidayName = settings["holidayName${holidayIndex}"] ?: "Holiday ${holidayIndex}"
+        def holidayName = settings?.getAt("holidayName${holidayIndex}") ?: "Holiday ${holidayIndex}"
         def colorOptions = getDefinedColorOptions()
 
         section("Colors for ${holidayName}") {
@@ -160,7 +160,7 @@ Common colors:
             input "holiday${holidayIndex}UseIndividualDays", "bool", title: "Use Individual Day Configuration", defaultValue: false, submitOnChange: true
         }
 
-        if (settings["holiday${holidayIndex}UseIndividualDays"]) {
+        if (settings?.getAt("holiday${holidayIndex}UseIndividualDays")) {
             def days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
             days.eachWithIndex { day, idx ->
                 section("${day}") {
@@ -194,7 +194,7 @@ def getDefinedColorOptions() {
     def options = [:]
     options["black"] = "Black (Off)"
 
-    if (colorCount) {
+    if (colorCount && settings) {
         for (int i = 1; i <= colorCount; i++) {
             def name = settings["colorName${i}"]
             if (name) {
@@ -211,9 +211,11 @@ def getDefinedColorOptions() {
 def getControllersDescription() {
     def count = controllerCount ?: 0
     def enabled = 0
-    for (int i = 1; i <= count; i++) {
-        if (settings["controllerEnabled${i}"] != false && settings["controllerEndpoint${i}"]) {
-            enabled++
+    if (settings) {
+        for (int i = 1; i <= count; i++) {
+            if (settings["controllerEnabled${i}"] != false && settings["controllerEndpoint${i}"]) {
+                enabled++
+            }
         }
     }
     return "${enabled} controller(s) configured"
@@ -221,7 +223,7 @@ def getControllersDescription() {
 
 def getColorsDescription() {
     def count = 0
-    if (colorCount) {
+    if (colorCount && settings) {
         for (int i = 1; i <= colorCount; i++) {
             if (settings["colorName${i}"]) {
                 count++
@@ -233,7 +235,7 @@ def getColorsDescription() {
 
 def getHolidaysDescription() {
     def count = 0
-    if (holidayCount) {
+    if (holidayCount && settings) {
         for (int i = 1; i <= holidayCount; i++) {
             if (settings["holidayName${i}"] && settings["holidayEnabled${i}"] != false) {
                 count++
